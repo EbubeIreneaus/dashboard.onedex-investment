@@ -32,7 +32,7 @@
                   <img src="../assets/admin-user.jpg" />
                 </q-avatar>
 
-                <div class="text-subtitle1 q-mt-md q-mb-xs">Ebube Ireneaus</div>
+                <div class="text-subtitle1 q-mt-md q-mb-xs">{{ userInfo.fullname }}</div>
 
                 <q-btn
                   color="primary"
@@ -77,7 +77,7 @@
         lcw-marquee-items="10"
       ></div>
 
-      <router-view />
+      <router-view :userInfo="userInfo" />
 
       <div
         class="tradingview-widget-container q-mt-lg"
@@ -100,15 +100,18 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { inject, onMounted, provide, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import EssentialLink, {
   EssentialLinkProps,
 } from 'components/EssentialLink.vue';
+const router = useRouter()
 
 defineOptions({
   name: 'MainLayout',
 });
-
+const props = defineProps(['userId'])
+const backend = inject('backend')
 const activePage = ref<string>('Dashboard');
 
 const linksList: EssentialLinkProps[] = [
@@ -155,12 +158,33 @@ const linksList: EssentialLinkProps[] = [
   },
 ];
 
+const userInfo = ref({
+  fullname: '',
+  email: '',
+  id: ''
+})
+
+async function getUser(){
+  const res = await ((await fetch(`${backend}/userInfo?id=${props.userId}`)).json())
+    if(res.id){
+      userInfo.value = res
+      provide('user', res)
+      return true
+
+    }
+    router.push('/auth')
+}
+
+
 const leftDrawerOpen = ref(false);
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value;
 }
+
 onMounted(() => {
+  getUser()
+
   const TradingViewscript1 = document.createElement('script');
   TradingViewscript1.type = 'text/javascript';
   TradingViewscript1.async = true;

@@ -11,7 +11,7 @@
         <q-card class="bg-accent col-md col-12 q-py-md rounded-xl">
           <q-card-section class="row justify-between items-center">
             <div>
-              <div class="text-h5">$1,500.00</div>
+              <div class="text-h5">{{ currencyFormater(account.balance) }}</div>
               <div>Account Balance</div>
             </div>
             <q-icon
@@ -25,7 +25,7 @@
         <q-card class="bg-accent col-md col-12 q-py-md rounded-xl">
           <q-card-section class="row justify-between items-center">
             <div>
-              <div class="text-h5">$0.00</div>
+              <div class="text-h5">{{ currencyFormater(account.active_investment) }}</div>
               <div>Active Investment</div>
             </div>
             <q-icon name="savings" size="lg" color="secondary"></q-icon>
@@ -35,7 +35,7 @@
         <q-card class="bg-accent col-md col-12 q-py-md rounded-xl">
           <q-card-section class="row justify-between items-center">
             <div>
-              <div class="text-h5">$0.00</div>
+              <div class="text-h5">{{ currencyFormater(account.pending_withdraw) }}</div>
               <div>Pending Withdrawal</div>
             </div>
             <q-icon name="account_balance" size="lg" color="secondary"></q-icon>
@@ -45,7 +45,7 @@
         <q-card class="bg-accent col-md col-12 q-py-md rounded-xl">
           <q-card-section class="row justify-between items-center">
             <div>
-              <div class="text-h5">$0.00</div>
+              <div class="text-h5">{{ currencyFormater(account.total_earnings) }}</div>
               <div>Total Earning</div>
             </div>
             <q-icon name="attach_money" size="lg" color="secondary"></q-icon>
@@ -78,12 +78,12 @@
       <div class="tradingview-widget-container__widget TradingviewWidget1" style="height:400px"></div>
     </div>
     <!-- TradingView Widget END -->
-     
+
     <q-table
       :columns="tableColumn"
       title="Orders"
       row-key="id"
-      :rows="[]"
+      :rows="tableRow"
       class="bg-accent text-white"
     ></q-table>
   </q-page>
@@ -94,8 +94,17 @@
 import { useMeta } from 'quasar';
 import { MetaOptions } from 'quasar/dist/types/meta';
 import { QTableColumn } from 'quasar';
-import { onMounted } from 'vue';
+import { inject, onMounted, ref } from 'vue';
+import { currencyFormater } from 'src/composables/money';
 
+const account = ref({
+  balance: 0.00,
+  active_investment: 0.00,
+  pending_withdraw: 0.00,
+  total_earnings: 0.00
+})
+const userId = inject('userId')
+const backend = inject('backend')
 defineOptions({
   name: 'IndexPage',
 });
@@ -112,7 +121,7 @@ let meta: MetaOptions = {
 useMeta(meta);
 
 const tableColumn: QTableColumn[] = [
-  { name: 'id', label: 'Id', field: 'id', required: true, align: 'left' },
+  { name: 'id', label: 'orderId', field: 'orderId', required: true, align: 'left' },
   {
     name: 'type',
     label: 'Type',
@@ -145,24 +154,26 @@ const tableColumn: QTableColumn[] = [
     align: 'left',
     sortable: true,
   },
-  {
-    name: 'plan',
-    label: 'Plan',
-    field: 'plan',
-    required: true,
-    align: 'left',
-    sortable: true,
-  },
-  {
-    name: 'time',
-    label: 'Time Left',
-    field: 'time',
-    required: true,
-    align: 'left',
-    sortable: true,
-  },
+
 ];
+
+const tableRow = ref([])
+
+async function getAccount(){
+  let req = await fetch(`${backend}/accountInfo?id=${userId}`)
+  account.value = await req.json()
+}
+
+async function getOrders() {
+  let req = await fetch(`${backend}/order?id=${userId}`)
+  tableRow.value = await req.json()
+
+}
+
 onMounted(() => {
+  getAccount()
+  getOrders()
+
   const twgetScript = document.createElement('script');
   twgetScript.type = 'text/javascript';
   twgetScript.src =

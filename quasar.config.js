@@ -119,7 +119,10 @@ module.exports = configure(function (/* ctx */) {
       // Quasar plugins
       plugins: [
         'Meta',
-        'Cookies'
+        'Cookies',
+        'Notify',
+        'Dialog',
+        'Loading'
       ]
     },
 

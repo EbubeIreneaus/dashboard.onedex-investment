@@ -1,12 +1,50 @@
 <script setup lang="tsx">
-import { reactive, ref } from 'vue';
+import { useNotify } from 'src/composables/notify';
+import { inject, onBeforeMount, reactive, ref } from 'vue';
+const userId = inject('userId')
+const backend = inject('backend')
 
-const user = reactive({
-  fullname: 'Okigwe Ebube Ireneaus',
-  email: 'alfredebube7@gmail.com',
-  psw: '',
-});
+
+const nameLoading = ref(false)
+
+const user = ref({
+  fullname: '',
+  email: ''
+})
+let psw= reactive({
+  psw: ''
+})
+
+async function getUser(){
+  const res = await ((await fetch(`${backend}/userInfo?id=${userId}`)).json())
+    if(res.id){
+      user.value = res
+      return true
+
+    }
+    // router.push('/auth')
+}
+
+async function updateName(){
+  nameLoading.value = true
+try {
+  const res = await(await fetch(`${backend}/update/fullname?id=${userId}&name=${user.value.fullname}`)).json()
+  if (res.status == 'success') {
+    return nameLoading.value = false
+  }
+  nameLoading.value = false
+  return useNotify('error', 'request error', 'could not save new name at the moment')
+} catch (error) {
+  nameLoading.value = false
+  return useNotify('error', 'server error', 'could not save new name at the moment')
+
+}
+}
 const confirm = ref('')
+
+onBeforeMount(()=>{
+  getUser()
+})
 </script>
 <template>
   <div class="full-width full-height row items-center q-py-xl q-px-md">
@@ -22,6 +60,8 @@ const confirm = ref('')
           label="Fullname"
           label-color="positive"
           class="q-mb-md"
+          @blur="updateName"
+          :loading="nameLoading"
         />
         <q-input
           outlined
@@ -36,7 +76,7 @@ const confirm = ref('')
         </fieldset>
         <fieldset class="q-pa-lg">
           <legend>Password</legend>
-          <q-input label="Password" type="password" label-color="positive" outlined dark color="white" v-model="user.psw" class="q-mb-md" />
+          <q-input label="Password" type="password" label-color="positive" outlined dark color="white" v-model="psw.psw" class="q-mb-md" />
           <q-input label="Confirm" type="password" label-color="positive" outlined dark color="white" v-model="confirm" class="q-mb-md" />
           <q-btn color="positive" >save password</q-btn>
         </fieldset>

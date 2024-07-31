@@ -1,16 +1,57 @@
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { defineAsyncComponent, inject, reactive, ref } from 'vue';
+import { useQuasar, QSpinnerFacebook } from 'quasar';
+const depositSuccess = defineAsyncComponent(()=>import('components/DepositSuccess.vue'))
 
+const userId = inject('userId')
+const $q = useQuasar()
+const backend = inject('backend')
+const isDeposited = ref(false)
+
+import { useNotify } from 'src/composables/notify';
 let paymentForm = reactive({
-  amount: '',
+  id: userId,
+  amount: 0,
   channel: 'BTC',
 });
 
+
 const options = [
   { value: 'BTC', label: 'Bitcion' },
-  { value: 'ETH', label: 'Ethereum' },
   { value: 'USDT', label: 'USDT(TRC20)' },
+  { value: 'CARD', label: 'Card or Transfer' },
 ];
+
+async function saveOrder(){
+  $q.loading.show({
+          spinner: QSpinnerFacebook,
+          spinnerColor: 'yellow',
+          spinnerSize: 140,
+          message: 'please wait a little, while we proccess your request',
+  })
+  try {
+    const req = await fetch(`${backend}/order/deposit`, {
+      method: 'post',
+      body: JSON.stringify(paymentForm)
+    })
+    if(!req.ok){
+      $q.loading.hide()
+      return useNotify('error', 'Server Error Occured', 'please try again, thank you!')
+    }
+    const res = await req.json()
+
+    if (res.status == 'failed') {
+      $q.loading.hide()
+      return useNotify('error', 'Invalid Request', res.code)
+    }
+
+    $q.loading.hide()
+    isDeposited.value = true
+
+  } catch (error) {
+
+  }
+}
 </script>
 <template>
   <div
@@ -58,7 +99,9 @@ const options = [
         </q-option-group>
       </div>
 
-      <q-btn color="positive" class="q-mt-md">save and continue</q-btn>
+      <q-btn color="positive" class="q-mt-md" @click="saveOrder()">save and continue</q-btn>
     </div>
+
+    <deposit-success v-if="isDeposited" :channel="paymentForm.channel" />
   </div>
 </template>

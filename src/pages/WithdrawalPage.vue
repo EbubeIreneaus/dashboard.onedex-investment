@@ -1,12 +1,75 @@
 <script lang="ts" setup>
-import { reactive } from 'vue';
+import Swal from 'sweetalert2';
+import { inject, reactive, ref, onMounted } from 'vue';
+import { useQuasar, QSpinnerFacebook } from 'quasar';
+import { useNotify } from 'src/composables/notify';
 
-let balance = '70.00';
+const $q = useQuasar();
+const backend = inject('backend');
+const userId = inject('userId');
+const withdrawOptions = ['BTC', 'USDT']
+let balance = ref(0.00);
 const withdrawForm = reactive({
+  id: userId,
   wallet: '',
-  channel: '',
-  amount: '',
+  channel: 'BTC',
+  amount: 0
 });
+
+async function getAccount(){
+  let req = await fetch(`${backend}/accountInfo?id=${userId}`)
+  const account = await req.json()
+  balance.value = account.balance
+}
+
+function resetForm(){
+  withdrawForm.wallet = ''
+  withdrawForm.channel = ''
+  withdrawForm.amount= 0
+}
+
+async function saveOrder() {
+  $q.loading.show({
+    spinner: QSpinnerFacebook,
+    spinnerColor: 'yellow',
+    spinnerSize: 140,
+    message: 'please wait a little, while we proccess your request',
+  });
+  try {
+    const req = await fetch(`${backend}/order/withdraw`, {
+      method: 'post',
+      body: JSON.stringify(withdrawForm),
+    });
+    if (!req.ok) {
+      $q.loading.hide();
+      return useNotify(
+        'error',
+        'Server Error Occured',
+        'please try again, thank you!'
+      );
+    }
+    const res = await req.json();
+
+    if (res.status == 'failed') {
+      $q.loading.hide();
+      return useNotify('error', 'Invalid Request', res.code);
+    }
+
+    $q.loading.hide();
+    Swal.fire({
+      title: 'Successful!',
+      text: 'We have recieve your request and we are proccessing it.',
+      icon: 'success',
+      confirmButtonText: 'Cool',
+      background: '#02022a',
+      color: '#ffffff'
+    });
+    return resetForm()
+  } catch (error) {}
+}
+onMounted(()=>{
+  getAccount()
+})
 </script>
 
 <template>
@@ -21,14 +84,15 @@ const withdrawForm = reactive({
       <fieldset class="q-pa-lg q-my-lg" style="max-width: 768px">
         <legend>Wallet Information</legend>
         <q-form spellcheck="off">
-          <q-input
+          <q-select
             v-model="withdrawForm.channel"
+            :options="withdrawOptions"
             dark
             label="crypto channel eg USDT"
             label-color="positive"
             standout
             class="q-mb-md"
-          ></q-input>
+          ></q-select>
           <q-input
             v-model="withdrawForm.amount"
             dark
@@ -46,7 +110,7 @@ const withdrawForm = reactive({
             class="q-mb-md"
           ></q-input>
           <br />
-          <q-btn color="positive">Initiate Withdraw</q-btn>
+          <q-btn color="positive" @click="saveOrder()">Initiate Withdraw</q-btn>
         </q-form>
       </fieldset>
     </div>
