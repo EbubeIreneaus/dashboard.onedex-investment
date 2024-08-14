@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, reactive, ref } from 'vue';
+import { defineAsyncComponent, inject, reactive, ref } from 'vue';
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
 const EmailVerificationComponent = defineAsyncComponent(
@@ -10,6 +10,7 @@ const isRegistering = ref(false);
 const isLoggingin = ref(false);
 const showEmailVerificationDialog = ref(false);
 const router = useRouter()
+const backend = inject('backend')
 // const isLoggingIn = ref(false)
 
 function notify(
@@ -42,7 +43,7 @@ async function Register() {
   isRegistering.value = true;
 
   try {
-    const req = await fetch('http://127.0.0.1:8000/api/auth/signup', {
+    const req = await fetch(`${backend}/auth/signup`, {
       method: 'post',
       body: JSON.stringify(formRegister),
     });
@@ -74,7 +75,7 @@ async function Login() {
   isLoggingin.value = true;
 
   try {
-    const req = await fetch('http://127.0.0.1:8000/api/auth/signin', {
+    const req = await fetch(`${backend}/auth/signin`, {
       method: 'post',
       body: JSON.stringify(formLogin),
     });
@@ -106,6 +107,8 @@ async function Login() {
     console.log(error);
   }
 }
+
+
 </script>
 
 <template>
@@ -152,7 +155,7 @@ async function Login() {
             >submit</q-btn
           >
           <div class="h6">
-            <router-link to="">Forgot your password?</router-link>
+            <router-link to="/auth/fgetpass">Forgot your password?</router-link>
           </div>
         </q-form>
       </div>

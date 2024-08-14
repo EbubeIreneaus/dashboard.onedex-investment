@@ -105,12 +105,16 @@ import { useRouter } from 'vue-router';
 import EssentialLink, {
   EssentialLinkProps,
 } from 'components/EssentialLink.vue';
-const router = useRouter()
+import { useQuasar } from 'quasar';
 
+const router = useRouter()
+const $q = useQuasar()
 defineOptions({
   name: 'MainLayout',
 });
-const props = defineProps(['userId'])
+
+let userId = ref(null)
+
 const backend = inject('backend')
 const activePage = ref<string>('Dashboard');
 
@@ -164,8 +168,19 @@ const userInfo = ref({
   id: ''
 })
 
+function checkuser_and_getuser(){
+  if ($q.cookies.has('userId')) {
+    userId.value = $q.cookies.get('userId')
+  }else{
+    router.push('/auth')
+  }
+}
+checkuser_and_getuser()
+provide('userId', userId.value )
+
 async function getUser(){
-  const res = await ((await fetch(`${backend}/userInfo?id=${props.userId}`)).json())
+  try {
+    const res = await ((await fetch(`${backend}/userInfo?id=${userId.value}`)).json())
     if(res.id){
       userInfo.value = res
       provide('user', res)
@@ -173,6 +188,9 @@ async function getUser(){
 
     }
     router.push('/auth')
+  } catch (error) {
+    router.push('/auth')
+  }
 }
 
 
@@ -183,6 +201,7 @@ function toggleLeftDrawer() {
 }
 
 onMounted(() => {
+
   getUser()
 
   const TradingViewscript1 = document.createElement('script');

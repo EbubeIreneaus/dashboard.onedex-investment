@@ -7,13 +7,13 @@ import { useNotify } from 'src/composables/notify';
 const $q = useQuasar();
 const backend = inject('backend');
 const userId = inject('userId');
-const withdrawOptions = ['BTC', 'USDT']
+const withdrawOptions = ['MOMO', 'USDT']
 let balance = ref(0.00);
 const withdrawForm = reactive({
   id: userId,
   wallet: '',
-  channel: 'BTC',
-  amount: 0
+  channel: 'USDT',
+  amount: 50
 });
 
 async function getAccount(){
@@ -29,12 +29,18 @@ function resetForm(){
 }
 
 async function saveOrder() {
+  if(withdrawForm.amount < 50 || withdrawForm.wallet == ''){
+    alert('please fill in the whthdrawal form')
+    return false
+  }
+  
   $q.loading.show({
     spinner: QSpinnerFacebook,
     spinnerColor: 'yellow',
     spinnerSize: 140,
     message: 'please wait a little, while we proccess your request',
   });
+
   try {
     const req = await fetch(`${backend}/order/withdraw`, {
       method: 'post',
@@ -100,14 +106,17 @@ onMounted(()=>{
             label-color="positive"
             standout
             class="q-mb-md"
+            required
           ></q-input>
           <q-input
             v-model="withdrawForm.wallet"
             dark
-            label="Wallet Address"
+            :label= "withdrawForm.channel=='USDT'?'Wallet Address':'Account Details'"
+            :placeholder="withdrawForm.channel=='USDT'?'wallet address': 'account-name, account-number..'"
             label-color="positive"
             standout
             class="q-mb-md"
+            required
           ></q-input>
           <br />
           <q-btn color="positive" @click="saveOrder()">Initiate Withdraw</q-btn>

@@ -1,50 +1,100 @@
 <script setup lang="tsx">
 import { useNotify } from 'src/composables/notify';
 import { inject, onBeforeMount, reactive, ref } from 'vue';
-const userId = inject('userId')
-const backend = inject('backend')
+const userId = inject('userId');
+const backend = inject('backend');
 
-
-const nameLoading = ref(false)
+const nameLoading = ref(false);
+const pswLoading = ref(false)
 
 const user = ref({
   fullname: '',
-  email: ''
-})
-let psw= reactive({
-  psw: ''
-})
+  email: '',
+});
 
-async function getUser(){
-  const res = await ((await fetch(`${backend}/userInfo?id=${userId}`)).json())
-    if(res.id){
-      user.value = res
-      return true
+let psw = reactive({
+  psw: '',
+});
+const confirm = ref('');
 
-    }
-    // router.push('/auth')
-}
-
-async function updateName(){
-  nameLoading.value = true
-try {
-  const res = await(await fetch(`${backend}/update/fullname?id=${userId}&name=${user.value.fullname}`)).json()
-  if (res.status == 'success') {
-    return nameLoading.value = false
+async function getUser() {
+  const res = await (await fetch(`${backend}/userInfo?id=${userId}`)).json();
+  if (res.id) {
+    user.value = res;
+    return true;
   }
-  nameLoading.value = false
-  return useNotify('error', 'request error', 'could not save new name at the moment')
-} catch (error) {
-  nameLoading.value = false
-  return useNotify('error', 'server error', 'could not save new name at the moment')
-
+  // router.push('/auth')
 }
-}
-const confirm = ref('')
 
-onBeforeMount(()=>{
-  getUser()
-})
+async function updateName() {
+  nameLoading.value = true;
+  try {
+    const res = await (
+      await fetch(
+        `${backend}/update/fullname?id=${userId}&name=${user.value.fullname}`
+      )
+    ).json();
+    if (res.status == 'success') {
+      return (nameLoading.value = false);
+    }
+    nameLoading.value = false;
+    return useNotify(
+      'error',
+      'request error',
+      'could not save new name at the moment'
+    );
+  } catch (error) {
+    nameLoading.value = false;
+    return useNotify(
+      'error',
+      'server error',
+      'could not save new name at the moment'
+    );
+  }
+}
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function resetPassword(){
+  if(psw.psw !== confirm.value){
+    return useNotify(
+      'error',
+      'request error',
+      'password does not match'
+    );
+  }
+  pswLoading.value = true
+  try {
+    const res = await (
+      await fetch(
+        `${backend}/update/password?id=${userId}&psw=${psw.psw}`
+      )
+    ).json();
+    if (res.status == 'success') {
+     pswLoading.value = false
+      psw.psw = ''
+      confirm.value = ''
+      return true
+    }
+    pswLoading.value=false
+    return useNotify(
+      'error',
+      'request error',
+      'could not save new password at the moment'
+    );
+  } catch (error) {
+    pswLoading.value=false
+    return useNotify(
+      'error',
+      'server error',
+      'could not save new password at the moment'
+    );
+  }
+}
+
+onBeforeMount(() => {
+  getUser();
+});
 </script>
 <template>
   <div class="full-width full-height row items-center q-py-xl q-px-md">
@@ -53,32 +103,52 @@ onBeforeMount(()=>{
         <fieldset class="q-pa-lg q-mb-lg">
           <legend>Personal</legend>
           <q-input
-          outlined
-          v-model="user.fullname"
-          dark
-          color="white"
-          label="Fullname"
-          label-color="positive"
-          class="q-mb-md"
-          @blur="updateName"
-          :loading="nameLoading"
-        />
-        <q-input
-          outlined
-          v-model="user.email"
-          dark
-          color="white"
-          label="Email Address"
-          label-color="positive"
-          class="q-mb-md"
-          readonly
-        />
+            outlined
+            v-model="user.fullname"
+            dark
+            color="white"
+            label="Fullname"
+            label-color="positive"
+            class="q-mb-md"
+            @blur="updateName"
+            :loading="nameLoading"
+          />
+          <q-input
+            outlined
+            v-model="user.email"
+            dark
+            color="white"
+            label="Email Address"
+            label-color="positive"
+            class="q-mb-md"
+            readonly
+          />
         </fieldset>
         <fieldset class="q-pa-lg">
           <legend>Password</legend>
-          <q-input label="Password" type="password" label-color="positive" outlined dark color="white" v-model="psw.psw" class="q-mb-md" />
-          <q-input label="Confirm" type="password" label-color="positive" outlined dark color="white" v-model="confirm" class="q-mb-md" />
-          <q-btn color="positive" >save password</q-btn>
+          <q-input
+            label="Password"
+            type="password"
+            label-color="positive"
+            required
+            outlined
+            dark
+            color="white"
+            v-model="psw.psw"
+            class="q-mb-md"
+          />
+          <q-input
+            label="Confirm"
+            type="password"
+            label-color="positive"
+            required
+            outlined
+            dark
+            color="white"
+            v-model="confirm"
+            class="q-mb-md"
+          />
+          <q-btn color="positive" @click="resetPassword()" :loading="pswLoading">save password</q-btn>
         </fieldset>
       </q-form>
     </div>

@@ -71,7 +71,7 @@ onMounted(()=>{
 
       <q-banner class="bg-accent text-positive q-my-lg">
         <div>
-          Referr a family or friends today and earn 20% commision on every
+          Refer a family or friends today and earn 20% commision on every
           investment they made with us (coming soon.).
         </div>
       </q-banner>

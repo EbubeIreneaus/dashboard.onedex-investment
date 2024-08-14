@@ -11,24 +11,29 @@ const isDeposited = ref(false)
 import { useNotify } from 'src/composables/notify';
 let paymentForm = reactive({
   id: userId,
-  amount: 0,
+  amount: null,
   channel: 'BTC',
 });
 
 
 const options = [
-  { value: 'BTC', label: 'Bitcion' },
   { value: 'USDT', label: 'USDT(TRC20)' },
-  { value: 'CARD', label: 'Card or Transfer' },
+  { value: 'MOMO', label: 'Card or Momo Transfer' },
 ];
 
 async function saveOrder(){
+  if(paymentForm.amount == null || paymentForm.amount == ''){
+    alert('please fill in the payment form')
+    return false
+  }
+  
   $q.loading.show({
           spinner: QSpinnerFacebook,
           spinnerColor: 'yellow',
           spinnerSize: 140,
           message: 'please wait a little, while we proccess your request',
   })
+
   try {
     const req = await fetch(`${backend}/order/deposit`, {
       method: 'post',
@@ -72,13 +77,14 @@ async function saveOrder(){
           type="number"
           step="50"
           v-model="paymentForm.amount"
+          placeholder="0.00"
           label="Amount(USD)"
           label-color="positive"
           standout
           prefix="$"
-          bg-color="black"
           class="text-white"
           dark
+
         />
       </div>
       <div class="q-pa-lg">

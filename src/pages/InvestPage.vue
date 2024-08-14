@@ -23,11 +23,11 @@ const plans = [
 const investForm = reactive({
   id: userId,
   plan: 'silver',
-  amount: 0,
+  amount: null,
 });
 
 function resetForm(){
-  investForm.amount = 0
+  investForm.amount = null
   investForm.plan = 'silver'
 }
 
@@ -89,11 +89,11 @@ async function saveOrder() {
           type="number"
           step="50"
           v-model="investForm.amount"
+          placeholder="0.00"
           label="Amount(USD)"
           label-color="positive"
           standout
           prefix="$"
-          bg-color="black"
           class="text-white"
           dark
         />

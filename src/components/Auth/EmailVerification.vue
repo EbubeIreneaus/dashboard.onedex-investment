@@ -1,11 +1,11 @@
 <script setup>
 import QOtp from 'quasar-app-extension-q-otp';
-import {onMounted, ref} from 'vue'
+import {inject, onMounted, ref} from 'vue'
 import { useQuasar } from 'quasar';
 import { useRouter } from 'vue-router';
 import { useInterval } from 'quasar';
 const props = defineProps(['email', 'label'])
-
+const backend = inject('backend')
 const $q = useQuasar();
 const { registerInterval, removeInterval } = useInterval();
 const showDialog = true;
@@ -49,7 +49,7 @@ function actionClick() {
 async function requestOTP(){
   actionClick()
   try {
-    await fetch(`http://127.0.0.1:8000/requestOTP?id=${userId.value}&&label=${props.label}`)
+    await fetch(`${backend}/requestOTP?id=${userId.value}&&label=${props.label}`)
 
   }catch (error){
 
@@ -60,7 +60,7 @@ async function requestOTP(){
 async function VerifyOTP(otp){
   isverifying.value = true
   try {
-   const req = await fetch(`http://127.0.0.1:8000/api/verifyOTP?id=${userId.value}&otp=${Number(otp)}`)
+   const req = await fetch(`${backend}/verifyOTP?id=${userId.value}&otp=${Number(otp)}`)
 
    if(!req.ok){
     notify('error', 'unknown server error', 'Unknown error during request please try again')

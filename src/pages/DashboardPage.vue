@@ -53,10 +53,11 @@
         </q-card>
       </div>
     </div>
+
     <div class="q-pa-md q-gutter-sm">
       <q-banner rounded class="bg-accent text-white">
         <div class="text-white text-body1 q-py-lg">
-          Hello Ireneaus (Not Ireneaus?
+          Hello {{account.user.fullname.split(' ')[0]}} (Not {{account.user.fullname.split(' ')[0]}}?
           <router-link to="/auth/logout" class="text-white">Log Out</router-link
           >)
         </div>
@@ -79,6 +80,10 @@
     </div>
     <!-- TradingView Widget END -->
 
+    <active-investment></active-investment>
+
+    <br /> <br/>
+
     <q-table
       :columns="tableColumn"
       title="Orders"
@@ -96,12 +101,16 @@ import { MetaOptions } from 'quasar/dist/types/meta';
 import { QTableColumn } from 'quasar';
 import { inject, onMounted, ref } from 'vue';
 import { currencyFormater } from 'src/composables/money';
+import ActiveInvestment from 'src/components/ActiveInvestment.vue';
 
 const account = ref({
   balance: 0.00,
   active_investment: 0.00,
   pending_withdraw: 0.00,
-  total_earnings: 0.00
+  total_earnings: 0.00,
+  user: {
+    fullname: ''
+  }
 })
 const userId = inject('userId')
 const backend = inject('backend')

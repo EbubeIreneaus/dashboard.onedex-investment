@@ -19,6 +19,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', component: () => import('pages/Auth/SignUp.vue') },
       { path: 'logout', component: () => import('pages/Auth/LogoutPage.vue') },
+      { path: 'fgetpass', component: () => import('pages/Auth/FgetpassPage.vue') },
     ],
   },
 

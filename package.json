@@ -1,8 +1,8 @@
 {
-  "name": "oneidx-template",
+  "name": "onedex-dashboard",
   "version": "0.0.1",
-  "description": "A Quasar Project",
-  "productName": "oneidx-template",
+  "description": "Invest and earn with onedex-investment today!",
+  "productName": "onedex dashboard",
   "author": "Okigwe Ebube Ireneaus <alfredebube7@gmail.com>",
   "private": true,
   "scripts": {
